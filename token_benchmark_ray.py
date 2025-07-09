@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import time
 import random
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -25,6 +26,9 @@ from llmperf.utils import (
 from tqdm import tqdm
 
 from transformers import LlamaTokenizerFast
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_token_throughput_latencies(
     model: str,
@@ -95,6 +99,7 @@ def get_token_throughput_latencies(
         req_launcher = RequestsLauncher(clients)
         request_index = thread_index % max_num_completed_requests
 
+        logger.info(f'Using sampling params {additional_sampling_params}')
         while (
             time.monotonic() - start_time < test_timeout_s
             and num_completed_requests < max_num_completed_requests
