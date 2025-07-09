@@ -7,7 +7,6 @@ from pathlib import Path
 import re
 import time
 import random
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -96,7 +95,6 @@ def get_token_throughput_latencies(
         req_launcher = RequestsLauncher(clients)
         request_index = thread_index % max_num_completed_requests
 
-        print(f'Using sampling params {additional_sampling_params}')
         while (
             time.monotonic() - start_time < test_timeout_s
             and num_completed_requests < max_num_completed_requests
