@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import logging
 from typing import Any, Dict
 
 import ray
@@ -10,6 +11,7 @@ from llmperf.ray_llm_client import LLMClient
 from llmperf.models import RequestConfig
 from llmperf import common_metrics
 
+logger = logging.getLogger(__name__)
 
 @ray.remote
 class OpenAIChatCompletionsClient(LLMClient):
@@ -23,6 +25,7 @@ class OpenAIChatCompletionsClient(LLMClient):
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt},
         ]
+        logger.info(f'Prepared message {message}')
         model = request_config.model
         body = {
             "model": model,
@@ -68,6 +71,7 @@ class OpenAIChatCompletionsClient(LLMClient):
                 headers=headers,
             ) as response:
                 if response.status_code != 200:
+                    logger.error(f'Received non-200 status code: {response.status_code}, response {response.text}')
                     error_msg = response.text
                     error_response_code = response.status_code
                     response.raise_for_status()
@@ -86,6 +90,7 @@ class OpenAIChatCompletionsClient(LLMClient):
                     if "error" in data:
                         error_msg = data["error"]["message"]
                         error_response_code = data["error"]["code"]
+                        logger.error(f'About to throw error {data["error"]["message"]}')
                         raise RuntimeError(data["error"]["message"])
                         
                     delta = data["choices"][0]["delta"]
@@ -108,6 +113,9 @@ class OpenAIChatCompletionsClient(LLMClient):
             metrics[common_metrics.ERROR_CODE] = error_response_code
             print(f"Warning Or Error: {e}")
             print(error_response_code)
+            # print stacktrace
+            import traceback
+            traceback.print_exc()
 
         metrics[common_metrics.INTER_TOKEN_LAT] = sum(time_to_next_token) #This should be same as metrics[common_metrics.E2E_LAT]. Leave it here for now
         metrics[common_metrics.TTFT] = ttft
