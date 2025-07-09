@@ -1,7 +1,6 @@
 import json
 import os
 import time
-import logging
 from typing import Any, Dict
 
 import ray
@@ -10,8 +9,6 @@ import requests
 from llmperf.ray_llm_client import LLMClient
 from llmperf.models import RequestConfig
 from llmperf import common_metrics
-
-logger = logging.getLogger(__name__)
 
 @ray.remote
 class OpenAIChatCompletionsClient(LLMClient):
@@ -25,7 +22,7 @@ class OpenAIChatCompletionsClient(LLMClient):
             {"role": "system", "content": ""},
             {"role": "user", "content": prompt},
         ]
-        logger.info(f'Prepared message {message}')
+        print(f'Prepared message {message}')
         model = request_config.model
         body = {
             "model": model,
@@ -71,7 +68,7 @@ class OpenAIChatCompletionsClient(LLMClient):
                 headers=headers,
             ) as response:
                 if response.status_code != 200:
-                    logger.error(f'Received non-200 status code: {response.status_code}, response {response.text}')
+                    print(f'Received non-200 status code: {response.status_code}, response {response.text}')
                     error_msg = response.text
                     error_response_code = response.status_code
                     response.raise_for_status()
@@ -91,7 +88,7 @@ class OpenAIChatCompletionsClient(LLMClient):
                     if "error" in data:
                         error_msg = data["error"]["message"]
                         error_response_code = data["error"]["code"]
-                        logger.error(f'About to throw error {data["error"]["message"]}')
+                        print(f'About to throw error {data["error"]["message"]}')
                         raise RuntimeError(data["error"]["message"])
                         
                     delta = data["choices"][0]["delta"]
