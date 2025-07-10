@@ -76,9 +76,9 @@ class OpenAIChatCompletionsClient(LLMClient):
 
                     if not chunk:
                         continue
-                    if chunk == b"[DONE]":
-                        continue
                     stem = b"data: "
+                    if chunk == stem + b"[DONE]":
+                        continue
                     # skip lines that don't start with "data: " - tensortRT (v0.20) also outputs event: lines
                     if not chunk.startswith(stem):
                         print(f'SKipping line with data: {chunk}')
